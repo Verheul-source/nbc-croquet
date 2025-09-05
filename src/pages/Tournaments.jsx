@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Tournament, Registration, Club } from "@/entities/all";
+import { Tournament, Registration } from "@/entities/all";
 import { User } from "@/entities/User";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,6 @@ import { Textarea } from "@/components/ui/textarea";
 export default function Tournaments() {
   const [tournaments, setTournaments] = useState([]);
   const [registrations, setRegistrations] = useState([]);
-  const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRegistration, setShowRegistration] = useState(false);
   const [selectedTournament, setSelectedTournament] = useState(null);
@@ -31,29 +30,16 @@ export default function Tournaments() {
 
   const loadData = async () => {
     try {
-      const [tournamentsData, registrationsData, clubsData, userData] = await Promise.all([
+      const [tournamentsData, registrationsData, userData] = await Promise.all([
         Tournament.list("-date"),
         Registration.list(),
-        Club.list(),
         User.me().catch(() => null)
       ]);
-
-      // Enrich tournaments with club information
-      const enrichedTournaments = tournamentsData.map(tournament => {
-        const club = clubsData.find(c => c.id === tournament.host_club_id);
-        return {
-          ...tournament,
-          host_club: club?.name || "Unknown Club",
-          location: tournament.location || club?.location || "Location TBD"
-        };
-      });
-
-      setTournaments(enrichedTournaments);
+      setTournaments(tournamentsData);
       setRegistrations(registrationsData);
-      setClubs(clubsData);
       setUser(userData);
     } catch (error) {
-      console.error("Error loading tournament data:", error);
+      console.error("Error loading data:", error);
     } finally {
       setLoading(false);
     }
@@ -64,7 +50,6 @@ export default function Tournaments() {
       await User.login();
       return;
     }
-
     setSelectedTournament(tournament);
     setShowRegistration(true);
   };
@@ -91,7 +76,7 @@ export default function Tournaments() {
   };
 
   const isRegistered = (tournamentId) => {
-    return user && registrations.some(reg =>
+    return user && registrations.some(reg => 
       reg.tournament_id === tournamentId && reg.member_id === user.id
     );
   };
@@ -138,7 +123,7 @@ export default function Tournaments() {
         </h1>
         <div className="ornate-divider w-64 mx-auto"></div>
         <p className="font-body text-xl text-emerald-700 max-w-2xl mx-auto">
-          Join fellow croquet enthusiasts in tournaments across the Netherlands.
+          Join fellow croquet enthusiasts in tournaments across the Netherlands. 
           Test your skills and enjoy the camaraderie of competitive play.
         </p>
       </div>
@@ -167,7 +152,7 @@ export default function Tournaments() {
                     <div className="flex flex-wrap gap-3">
                       {getStatusBadge(tournament)}
                       <Badge variant="outline" className="border-amber-300 text-amber-700">
-                        {tournament.tournament_type || 'Singles'}
+                        {tournament.tournament_type}
                       </Badge>
                       {isRegistered(tournament.id) && (
                         <Badge className="bg-blue-100 text-blue-800">
@@ -223,7 +208,7 @@ export default function Tournaments() {
                       <div className="flex items-center gap-3">
                         <Euro className="w-5 h-5 text-emerald-500" />
                         <span className="font-body text-emerald-700">
-                          Entry Fee: €{tournament.entry_fee || 0}
+                          Entry Fee: €{tournament.entry_fee}
                         </span>
                       </div>
                     </div>
@@ -238,13 +223,13 @@ export default function Tournaments() {
                         <Users className="w-5 h-5 text-emerald-600" />
                       </div>
                       <div className="text-sm font-body text-emerald-700">
-                        {registrationCount} / {tournament.max_participants || 50} registered
+                        {registrationCount} / {tournament.max_participants} registered
                       </div>
                       <div className="w-full bg-emerald-200 rounded-full h-2 mt-2">
-                        <div
+                        <div 
                           className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-                          style={{
-                            width: `${Math.min((registrationCount / (tournament.max_participants || 50)) * 100, 100)}%`
+                          style={{ 
+                            width: `${Math.min((registrationCount / tournament.max_participants) * 100, 100)}%` 
                           }}
                         ></div>
                       </div>
@@ -260,8 +245,8 @@ export default function Tournaments() {
                             : 'bg-emerald-700 hover:bg-emerald-800'
                         } text-amber-100`}
                       >
-                        {isRegistered(tournament.id)
-                          ? 'Already Registered'
+                        {isRegistered(tournament.id) 
+                          ? 'Already Registered' 
                           : canRegister(tournament)
                             ? (user ? 'Register Now' : 'Login to Register')
                             : 'Registration Closed'

@@ -1,9 +1,10 @@
-// import-rules.js - Simple script to populate your database with rules
+// import-rules.js - Script to populate the rules database
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const sampleRules = [
+// Sample rules data - replace with your actual rules
+const rulesData = [
   {
     language: "en",
     part_title: "Preamble",
@@ -11,35 +12,46 @@ const sampleRules = [
     section_title: "The Ten Principles of Stichts Croquet",
     section_order: 1,
     content: `Principle 1: Heritage and Tradition
-Stichts Croquet draws its noble character from the Victorian tradition of croquet as played in the gardens of English country houses.
 
-Principle 2: Conduct
-Players embody the gentlemanly spirit through courteous behaviour, proper deportment, and respectful discourse.
+Stichts Croquet draws its noble character from the Victorian tradition, maintaining the elegance and sporting spirit that has defined this magnificent game for generations.
 
-Principle 3: Attire
-Players honour tradition through proper dress: white clothing or light earth colours such as sand.`
+Principle 2: Fair Play and Honour
+The game shall be conducted with utmost integrity, where a player's word is their bond and sportsmanship supersedes victory.
+
+Principle 3: Precision and Strategy
+Every stroke must be executed with deliberate intention, combining tactical acumen with technical mastery.
+
+[Continue with remaining principles...]`
   },
   {
     language: "en",
-    part_title: "Part I: Introduction", 
+    part_title: "Basic Rules",
     part_order: 1,
-    section_title: "1. Objective of the Game",
+    section_title: "Equipment and Setup",
     section_order: 1,
-    content: `1.1 The objective of Stichts Croquet is to be the first player to strike the central peg with your ball after successfully completing all required hoops in the correct sequence.
+    content: `The Court:
+- Dimensions: 35 yards by 28 yards
+- Hoops: 12 hoops arranged in the traditional pattern
+- Corner flags marked with Roman numerals I, II, III, IV
 
-1.2 All players compete as individuals. No partnerships, teams, or alliances are recognised under these Laws.`
+Equipment Required:
+- Four balls (blue, red, black, yellow)
+- Four mallets of appropriate weight and length
+- 12 hoops positioned as shown in the court diagram
+- One peg (rover peg) positioned at the centre`
   },
   {
     language: "nl",
-    part_title: "Preambule",
-    part_order: 0, 
-    section_title: "De Tien Beginselen van Stichts Croquet",
+    part_title: "Voorwoord",
+    part_order: 0,
+    section_title: "De Tien Principes van Stichts Croquet",
     section_order: 1,
-    content: `Beginsel 1: Erfgoed en Traditie
-Stichts Croquet ontleent haar edele karakter aan de Victorian traditie van croquet zoals gespeeld in de tuinen van Engelse landhuizen.
+    content: `Principe 1: Erfgoed en Traditie
 
-Beginsel 2: Gedrag
-Spelers belichamen de geest van hoffelijkheid door wellevend gedrag, gepaste houding en respectvol discours.`
+Stichts Croquet ontleent zijn nobele karakter aan de Victoriaanse traditie en behoudt de elegantie en sportieve geest die dit prachtige spel al generaties lang definieert.
+
+Principe 2: Fair Play en Eer
+Het spel wordt gespeeld met de hoogste integriteit, waarbij het woord van een speler hun borg is en sportiviteit boven overwinning gaat.`
   }
 ];
 
@@ -47,26 +59,48 @@ async function importRules() {
   try {
     console.log('🚀 Starting rules import...');
     
-    // Clear existing rules (optional)
-    const existingCount = await prisma.rule.count();
-    if (existingCount > 0) {
-      console.log(`🗑️ Clearing ${existingCount} existing rules...`);
-      await prisma.rule.deleteMany();
-    }
+    // Clear existing rules (optional - remove if you want to keep existing data)
+    console.log('🗑️ Clearing existing rules...');
+    await prisma.rule.deleteMany({});
     
     // Import new rules
-    for (const rule of sampleRules) {
-      const created = await prisma.rule.create({ data: rule });
-      console.log(`✅ Created rule: ${created.section_title} (${created.language})`);
+    console.log('📚 Importing rules data...');
+    
+    for (const rule of rulesData) {
+      await prisma.rule.create({
+        data: rule
+      });
+      console.log(`✅ Imported: ${rule.section_title} (${rule.language})`);
     }
     
-    console.log(`🎉 Successfully imported ${sampleRules.length} rules!`);
+    // Verify import
+    const count = await prisma.rule.count();
+    console.log(`\n📊 Import completed successfully!`);
+    console.log(`📈 Total rules in database: ${count}`);
+    
+    // Show summary by language
+    const englishCount = await prisma.rule.count({ where: { language: 'en' } });
+    const dutchCount = await prisma.rule.count({ where: { language: 'nl' } });
+    
+    console.log(`🇬🇧 English rules: ${englishCount}`);
+    console.log(`🇳🇱 Dutch rules: ${dutchCount}`);
     
   } catch (error) {
     console.error('❌ Import failed:', error);
+    throw error;
   } finally {
     await prisma.$disconnect();
+    console.log('🔌 Database connection closed');
   }
 }
 
-importRules();
+// Execute the import
+importRules()
+  .then(() => {
+    console.log('🎉 Rules import process completed!');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('💥 Fatal error during import:', error);
+    process.exit(1);
+  });

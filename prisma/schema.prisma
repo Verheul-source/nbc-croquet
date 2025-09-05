@@ -56,3 +56,15 @@ model Session {
   
   @@map("sessions")
 }
+
+model Rule {
+  id             String   @id @default(cuid())
+  language       String   @default("en")
+  part_title     String
+  part_order     Int
+  section_title  String
+  section_order  Int
+  content        String
+  created_date   DateTime @default(now())
+  updated_date   DateTime @updatedAt
+}
