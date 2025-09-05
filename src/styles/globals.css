@@ -1,18 +1,12 @@
-/* src/styles/globals.css - Corrected import order for Tailwind v4 */
+/* src/styles/globals.css - MINIMAL VERSION - Just the fixes */
 
-/* Google Fonts import MUST come FIRST - before any other @import */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Crimson+Text:wght@400;600&display=swap');
-
-/* Import Tailwind v4 - this comes AFTER Google Fonts */
 @import "tailwindcss";
 
-/* Tailwind v4 theme configuration using CSS custom properties */
 @theme {
-  /* Font families */
   --font-display: "Playfair Display", serif;
   --font-body: "Crimson Text", serif;
   
-  /* Emerald color palette for your croquet website */
   --color-emerald-25: #f0fdf4;
   --color-emerald-50: #ecfdf5;
   --color-emerald-100: #d1fae5;
@@ -25,7 +19,6 @@
   --color-emerald-800: #065f46;
   --color-emerald-900: #064e3b;
   
-  /* Amber/Gold color palette */
   --color-amber-50: #fffbeb;
   --color-amber-100: #fef3c7;
   --color-amber-200: #fde68a;
@@ -37,20 +30,13 @@
   --color-amber-800: #92400e;
   --color-amber-900: #78350f;
   
-  /* Custom cream background */
-  --color-cream-bg: #fefcf3;
+  --color-cream-bg: #fefcf7;
 }
 
-/* Utility classes for fonts */
-.font-display { 
-  font-family: var(--font-display);
-}
+.font-display { font-family: var(--font-display); }
+.font-body { font-family: var(--font-body); }
 
-.font-body { 
-  font-family: var(--font-body);
-}
-
-/* Your custom ornate divider styling */
+/* FIXED: Ornate divider - MINIMAL SOLUTION */
 .ornate-divider {
   background: linear-gradient(90deg, transparent, var(--color-amber-400), transparent);
   height: 1px; 
@@ -64,12 +50,14 @@
   top: 50%; 
   left: 50%;
   transform: translate(-50%, -50%); 
-  background: var(--color-emerald-800);
+  background: #fefcf7; /* FIXED: cream background */
   padding: 0 1rem; 
   color: var(--color-amber-400); 
   font-size: 1rem;
+  z-index: 1; /* FIXED: proper layering */
+  line-height: 1; /* FIXED: alignment */
 }
 
 .footer-divider::after { 
-  background: linear-gradient(to bottom, var(--color-emerald-800), #162c24); 
+  background: #064e3b; /* FIXED: emerald-900 for footer contrast */
 }
