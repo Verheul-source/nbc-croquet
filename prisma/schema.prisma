@@ -58,13 +58,15 @@ model Session {
 }
 
 model Rule {
-  id             String   @id @default(cuid())
-  language       String   @default("en")
-  part_title     String
-  part_order     Int
-  section_title  String
-  section_order  Int
-  content        String
-  created_date   DateTime @default(now())
-  updated_date   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  language        String   @default("en")
+  part_title      String
+  part_order      Int
+  section_title   String
+  section_order   Int
+  subsection_title String?  // Optional subsection
+  subsection_order Int?     // Optional subsection order
+  content         String
+  created_date    DateTime @default(now())
+  updated_date    DateTime @updatedAt
 }
