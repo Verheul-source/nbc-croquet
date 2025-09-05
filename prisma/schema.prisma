@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Club {
+  id           String   @id @default(cuid())
+  name         String
+  location     String?
+  created_date DateTime @default(now())
+  updated_date DateTime @updatedAt
+  
+  members      Member[]
+}
+
+model Member {
+  id                String   @id @default(cuid())
+  full_name         String
+  club_id           String
+  membership_number String   @unique
+  phone             String?
+  address           String?
+  date_joined       DateTime
+  membership_type   String   @default("full")
+  handicap          Int      @default(0)
+  created_date      DateTime @default(now())
+  updated_date      DateTime @updatedAt
+  
+  club              Club     @relation(fields: [club_id], references: [id])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  role         String   @default("member")
+  created_date DateTime @default(now())
+  updated_date DateTime @updatedAt
+  
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
