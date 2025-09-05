@@ -1,4 +1,4 @@
-// src/pages/administration/index.js - Clean Dashboard with Navigation
+// src/pages/administration/index.jsx - Corrected Dashboard with Clubs Support
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/router';
 
@@ -9,6 +9,7 @@ export default function Administration() {
   const [stats, setStats] = useState({
     laws: 0,
     members: 0,
+    clubs: 0,
     tournaments: 0
   });
 
@@ -52,6 +53,18 @@ export default function Administration() {
       if (membersResponse.ok) {
         const membersData = await membersResponse.json();
         setStats(prev => ({ ...prev, members: membersData.length }));
+      }
+      
+      // Load clubs count
+      try {
+        const clubsResponse = await fetch('/api/clubs');
+        if (clubsResponse.ok) {
+          const clubsData = await clubsResponse.json();
+          setStats(prev => ({ ...prev, clubs: clubsData.length }));
+        }
+      } catch (error) {
+        console.log('Clubs API not available yet, skipping...');
+        setStats(prev => ({ ...prev, clubs: 0 }));
       }
       
       // TODO: Load tournaments count when API is ready
@@ -221,6 +234,56 @@ export default function Administration() {
           </button>
         </div>
 
+        {/* Clubs Management Card */}
+        <div style={{ 
+          padding: '2rem', 
+          backgroundColor: 'white', 
+          borderRadius: '0.75rem',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+          transition: 'transform 0.2s, box-shadow 0.2s'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ 
+              width: '3rem', 
+              height: '3rem', 
+              backgroundColor: '#f0f9ff', 
+              borderRadius: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '1rem'
+            }}>
+              <span style={{ fontSize: '1.5rem' }}>🏛️</span>
+            </div>
+            <div>
+              <h3 style={{ color: '#065f46', fontSize: '1.25rem', margin: 0 }}>Clubs</h3>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: 0 }}>
+                {stats.clubs} clubs registered
+              </p>
+            </div>
+          </div>
+          <p style={{ color: '#6b7280', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+            Manage croquet clubs, their locations, and organizational information.
+          </p>
+          <button 
+            onClick={() => router.push('/administration/clubs')}
+            style={{ 
+              width: '100%',
+              padding: '0.75rem 1rem', 
+              backgroundColor: '#0284c7', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: '500'
+            }}
+          >
+            Manage Clubs
+          </button>
+        </div>
+
         {/* Tournaments Management Card */}
         <div style={{ 
           padding: '2rem', 
@@ -341,6 +404,10 @@ export default function Administration() {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0ea5e9' }}>{stats.members}</div>
             <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Total Members</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#0284c7' }}>{stats.clubs}</div>
+            <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>Total Clubs</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>{stats.tournaments}</div>

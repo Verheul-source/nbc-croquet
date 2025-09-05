@@ -20,17 +20,26 @@ model Club {
 model Member {
   id                String   @id @default(cuid())
   full_name         String
+  email             String?  // New field
+  birth_date        DateTime? // New field
+  gender            String?  // New field: "male", "female", "other", "prefer_not_to_say"
   club_id           String
   membership_number String   @unique
   phone             String?
   address           String?
   date_joined       DateTime
   membership_type   String   @default("full")
+  membership_status String   @default("active") // New field: "active", "inactive", "suspended", "expired"
+  payment_status    String   @default("pending") // New field: "paid", "pending", "overdue", "exempt"
   handicap          Int      @default(0)
+  board_position    String?  // New field: "president", "secretary", "treasurer", "board_member", null
+  notes             String?  // New field for comments
+  user_id           String?  @unique // Made unique for one-to-one relationship
   created_date      DateTime @default(now())
   updated_date      DateTime @updatedAt
   
   club              Club     @relation(fields: [club_id], references: [id])
+  user              User?    @relation(fields: [user_id], references: [id])
 }
 
 model User {
@@ -42,6 +51,7 @@ model User {
   updated_date DateTime @updatedAt
   
   sessions     Session[]
+  member       Member?  // New relation - one user can be linked to one member
 }
 
 model Session {

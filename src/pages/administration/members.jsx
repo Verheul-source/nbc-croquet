@@ -1,4 +1,4 @@
-// src/pages/administration/members.jsx - Members Management Page
+// src/pages/administration/members.jsx - Enhanced Members Management Page
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/router';
 
@@ -8,11 +8,13 @@ export default function MembersManagement() {
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
   const [clubs, setClubs] = useState([]);
+  const [users, setUsers] = useState([]);
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterClub, setFilterClub] = useState("");
   const [filterMembershipType, setFilterMembershipType] = useState("");
+  const [filterMembershipStatus, setFilterMembershipStatus] = useState("");
 
   useEffect(() => {
     checkAuth();
@@ -23,6 +25,17 @@ export default function MembersManagement() {
       loadData();
     }
   }, [user]);
+
+// In your members management page, add this after your existing useEffect hooks:
+
+useEffect(() => {
+  // Check for club filter in URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const clubParam = urlParams.get('club');
+  if (clubParam) {
+    setFilterClub(clubParam);
+  }
+}, []);
 
   const checkAuth = async () => {
     try {
@@ -44,9 +57,10 @@ export default function MembersManagement() {
 
   const loadData = async () => {
     try {
-      const [membersResponse, clubsResponse] = await Promise.all([
+      const [membersResponse, clubsResponse, usersResponse] = await Promise.all([
         fetch('/api/members'),
-        fetch('/api/clubs')
+        fetch('/api/clubs'),
+        fetch('/api/users') // New endpoint for users
       ]);
 
       if (membersResponse.ok) {
@@ -57,6 +71,11 @@ export default function MembersManagement() {
       if (clubsResponse.ok) {
         const clubsData = await clubsResponse.json();
         setClubs(clubsData);
+      }
+
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json();
+        setUsers(usersData);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -86,13 +105,21 @@ export default function MembersManagement() {
   const MemberForm = ({ member, onSave, onCancel }) => {
     const [formData, setFormData] = useState({
       full_name: member?.full_name || "",
+      email: member?.email || "",
+      birth_date: member?.birth_date ? member.birth_date.split('T')[0] : "",
+      gender: member?.gender || "",
       club_id: member?.club_id || "",
       membership_number: member?.membership_number || "",
       phone: member?.phone || "",
       address: member?.address || "",
       date_joined: member?.date_joined ? member.date_joined.split('T')[0] : new Date().toISOString().split('T')[0],
       membership_type: member?.membership_type || "full",
-      handicap: member?.handicap || 0
+      membership_status: member?.membership_status || "active",
+      payment_status: member?.payment_status || "pending",
+      handicap: member?.handicap || 0,
+      board_position: member?.board_position || "",
+      notes: member?.notes || "",
+      user_id: member?.user_id || ""
     });
     const [saving, setSaving] = useState(false);
 
@@ -101,13 +128,24 @@ export default function MembersManagement() {
       setSaving(true);
 
       try {
+        // Clean up empty fields
+        const dataToSend = { ...formData };
+        if (!dataToSend.email.trim()) dataToSend.email = null;
+        if (!dataToSend.birth_date) dataToSend.birth_date = null;
+        if (!dataToSend.gender) dataToSend.gender = null;
+        if (!dataToSend.phone.trim()) dataToSend.phone = null;
+        if (!dataToSend.address.trim()) dataToSend.address = null;
+        if (!dataToSend.board_position) dataToSend.board_position = null;
+        if (!dataToSend.notes.trim()) dataToSend.notes = null;
+        if (!dataToSend.user_id) dataToSend.user_id = null;
+
         const url = member ? `/api/members/${member.id}` : '/api/members';
         const method = member ? 'PUT' : 'POST';
 
         const response = await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(dataToSend)
         });
 
         if (response.ok) {
@@ -142,8 +180,8 @@ export default function MembersManagement() {
           backgroundColor: 'white', 
           padding: '2rem', 
           borderRadius: '0.75rem', 
-          width: '90%', 
-          maxWidth: '800px',
+          width: '95%', 
+          maxWidth: '1000px',
           maxHeight: '90vh',
           overflow: 'auto'
         }}>
@@ -152,129 +190,110 @@ export default function MembersManagement() {
           </h2>
           
           <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr', marginBottom: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                  placeholder="John Doe"
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.5rem', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '0.375rem' 
-                  }}
-                  required
-                />
-              </div>
+            {/* Personal Information Section */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ color: '#065f46', marginBottom: '1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                Personal Information
+              </h3>
               
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Membership Number *
-                </label>
-                <input
-                  type="text"
-                  value={formData.membership_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, membership_number: e.target.value }))}
-                  placeholder="NBC001"
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.5rem', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '0.375rem' 
-                  }}
-                  required
-                />
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.full_name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                    placeholder="John Doe"
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="john.doe@email.com"
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr', marginBottom: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Club *
-                </label>
-                <select 
-                  value={formData.club_id} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, club_id: e.target.value }))}
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.5rem', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '0.375rem' 
-                  }}
-                  required
-                >
-                  <option value="">Select a club</option>
-                  {clubs.map(club => (
-                    <option key={club.id} value={club.id}>{club.name}</option>
-                  ))}
-                </select>
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Birth Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.birth_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Gender
+                  </label>
+                  <select 
+                    value={formData.gender} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  >
+                    <option value="">Select...</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="prefer_not_to_say">Prefer not to say</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+31 6 12345678"
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  />
+                </div>
               </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Membership Type
-                </label>
-                <select 
-                  value={formData.membership_type} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, membership_type: e.target.value }))}
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.5rem', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '0.375rem' 
-                  }}
-                >
-                  <option value="full">👤 Full Member</option>
-                  <option value="senior">👴 Senior Member</option>
-                  <option value="junior">👶 Junior Member</option>
-                  <option value="honorary">👑 Honorary Member</option>
-                </select>
-              </div>
-            </div>
 
-            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr', marginBottom: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="+31 6 12345678"
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.5rem', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '0.375rem' 
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Date Joined
-                </label>
-                <input
-                  type="date"
-                  value={formData.date_joined}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date_joined: e.target.value }))}
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.5rem', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '0.375rem' 
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '2fr 1fr', marginBottom: '1rem' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
                   Address
@@ -292,22 +311,228 @@ export default function MembersManagement() {
                   }}
                 />
               </div>
+            </div>
+
+            {/* Membership Information Section */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ color: '#065f46', marginBottom: '1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                Membership Information
+              </h3>
+              
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Membership Number *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.membership_number}
+                    onChange={(e) => setFormData(prev => ({ ...prev, membership_number: e.target.value }))}
+                    placeholder="NBC001"
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Club *
+                  </label>
+                  <select 
+                    value={formData.club_id} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, club_id: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                    required
+                  >
+                    <option value="">Select a club</option>
+                    {clubs.map(club => (
+                      <option key={club.id} value={club.id}>{club.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Date Joined
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date_joined}
+                    onChange={(e) => setFormData(prev => ({ ...prev, date_joined: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr 1fr 1fr', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Membership Type
+                  </label>
+                  <select 
+                    value={formData.membership_type} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, membership_type: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  >
+                    <option value="full">👤 Full Member</option>
+                    <option value="senior">👴 Senior Member</option>
+                    <option value="junior">👶 Junior Member</option>
+                    <option value="honorary">👑 Honorary Member</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Membership Status
+                  </label>
+                  <select 
+                    value={formData.membership_status} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, membership_status: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  >
+                    <option value="active">🟢 Active</option>
+                    <option value="inactive">🟡 Inactive</option>
+                    <option value="suspended">🔴 Suspended</option>
+                    <option value="expired">⏰ Expired</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Payment Status
+                  </label>
+                  <select 
+                    value={formData.payment_status} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, payment_status: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  >
+                    <option value="paid">💰 Paid</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="overdue">🔴 Overdue</option>
+                    <option value="exempt">✅ Exempt</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Handicap
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="22"
+                    value={formData.handicap}
+                    onChange={(e) => setFormData(prev => ({ ...prev, handicap: parseInt(e.target.value) || 0 }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Club & System Information Section */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ color: '#065f46', marginBottom: '1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                Club & System Information
+              </h3>
+              
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Board Position
+                  </label>
+                  <select 
+                    value={formData.board_position} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, board_position: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  >
+                    <option value="">No board position</option>
+                    <option value="president">👑 President</option>
+                    <option value="secretary">📝 Secretary</option>
+                    <option value="treasurer">💰 Treasurer</option>
+                    <option value="board_member">🎯 Board Member</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Linked User Account
+                  </label>
+                  <select 
+                    value={formData.user_id} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, user_id: e.target.value }))}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem', 
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '0.375rem' 
+                    }}
+                  >
+                    <option value="">No linked account</option>
+                    {users.filter(u => u.email).map(user => (
+                      <option key={user.id} value={user.id}>{user.email} ({user.role})</option>
+                    ))}
+                  </select>
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Link this member to a website user account
+                  </small>
+                </div>
+              </div>
               
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                  Handicap
+                  Notes & Comments
                 </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="22"
-                  value={formData.handicap}
-                  onChange={(e) => setFormData(prev => ({ ...prev, handicap: parseInt(e.target.value) || 0 }))}
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Additional notes about this member..."
+                  rows={3}
                   style={{ 
                     width: '100%', 
                     padding: '0.5rem', 
                     border: '1px solid #d1d5db', 
-                    borderRadius: '0.375rem' 
+                    borderRadius: '0.375rem',
+                    resize: 'vertical'
                   }}
                 />
               </div>
@@ -354,13 +579,15 @@ export default function MembersManagement() {
   const filteredMembers = members.filter(member => {
     const matchesSearch = !searchTerm || 
       member.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.membership_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.club_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesClub = !filterClub || member.club_id === filterClub;
     const matchesMembershipType = !filterMembershipType || member.membership_type === filterMembershipType;
+    const matchesMembershipStatus = !filterMembershipStatus || member.membership_status === filterMembershipStatus;
     
-    return matchesSearch && matchesClub && matchesMembershipType;
+    return matchesSearch && matchesClub && matchesMembershipType && matchesMembershipStatus;
   });
 
   const membershipTypeColors = {
@@ -370,11 +597,18 @@ export default function MembersManagement() {
     honorary: "bg-purple-100 text-purple-800"
   };
 
-  const membershipTypeIcons = {
-    full: "👤",
-    senior: "👴",
-    junior: "👶",
-    honorary: "👑"
+  const membershipStatusColors = {
+    active: "bg-green-100 text-green-800",
+    inactive: "bg-yellow-100 text-yellow-800",
+    suspended: "bg-red-100 text-red-800",
+    expired: "bg-gray-100 text-gray-800"
+  };
+
+  const paymentStatusColors = {
+    paid: "bg-green-100 text-green-800",
+    pending: "bg-yellow-100 text-yellow-800",
+    overdue: "bg-red-100 text-red-800",
+    exempt: "bg-blue-100 text-blue-800"
   };
 
   if (loading) {
@@ -386,12 +620,12 @@ export default function MembersManagement() {
   }
 
   if (!user || user.role !== 'admin') {
-    return null; // Will redirect via useEffect
+    return null;
   }
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
-      {/* Header with breadcrumb */}
+      {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <button
           onClick={() => router.push('/administration')}
@@ -411,7 +645,7 @@ export default function MembersManagement() {
           <div>
             <h1 style={{ fontSize: '2rem', color: '#065f46', margin: 0 }}>👥 Members Management</h1>
             <p style={{ color: '#6b7280', margin: '0.5rem 0 0 0' }}>
-              Manage club members and membership information
+              Comprehensive member database with full profile management
             </p>
           </div>
           <button
@@ -435,7 +669,7 @@ export default function MembersManagement() {
         </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Enhanced Search and Filters */}
       <div style={{ 
         backgroundColor: 'white', 
         padding: '1.5rem', 
@@ -443,7 +677,7 @@ export default function MembersManagement() {
         border: '1px solid #e5e7eb',
         marginBottom: '2rem'
       }}>
-        <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '2fr 1fr 1fr', alignItems: 'end' }}>
+        <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '2fr 1fr 1fr 1fr', alignItems: 'end', marginBottom: '1rem' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
               Search Members
@@ -452,7 +686,7 @@ export default function MembersManagement() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name, membership number, or club..."
+              placeholder="Search by name, email, membership number, or club..."
               style={{ 
                 width: '100%', 
                 padding: '0.5rem', 
@@ -504,6 +738,28 @@ export default function MembersManagement() {
               <option value="honorary">👑 Honorary Members</option>
             </select>
           </div>
+          
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+              Filter by Status
+            </label>
+            <select 
+              value={filterMembershipStatus} 
+              onChange={(e) => setFilterMembershipStatus(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '0.5rem', 
+                border: '1px solid #d1d5db', 
+                borderRadius: '0.375rem' 
+              }}
+            >
+              <option value="">All Status</option>
+              <option value="active">🟢 Active</option>
+              <option value="inactive">🟡 Inactive</option>
+              <option value="suspended">🔴 Suspended</option>
+              <option value="expired">⏰ Expired</option>
+            </select>
+          </div>
         </div>
         
         <div style={{ marginTop: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
@@ -511,7 +767,7 @@ export default function MembersManagement() {
         </div>
       </div>
 
-      {/* Members List */}
+      {/* Enhanced Members List */}
       {filteredMembers.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', backgroundColor: '#f9fafb', borderRadius: '0.75rem' }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>👥</div>
@@ -520,7 +776,7 @@ export default function MembersManagement() {
           </h3>
           <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
             {members.length === 0 
-              ? 'Start building your member database by adding the first member.'
+              ? 'Start building your comprehensive member database.'
               : 'Try adjusting your search criteria or filters.'
             }
           </p>
@@ -555,31 +811,84 @@ export default function MembersManagement() {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ marginBottom: '0.75rem' }}>
+                  {/* Header with badges */}
+                  <div style={{ marginBottom: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                     <span style={{ 
                       backgroundColor: '#f3f4f6', 
                       padding: '0.25rem 0.5rem', 
                       borderRadius: '0.25rem', 
                       fontSize: '0.75rem',
-                      marginRight: '0.5rem'
+                      fontWeight: 'bold'
                     }}>
                       {member.membership_number}
                     </span>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${membershipTypeColors[member.membership_type]}`}>
-                      {membershipTypeIcons[member.membership_type]} {member.membership_type}
+                    <span style={{ 
+                      backgroundColor: membershipTypeColors[member.membership_type]?.replace('bg-', '').replace('text-', '') || '#f3f4f6',
+                      padding: '0.25rem 0.5rem', 
+                      borderRadius: '0.25rem', 
+                      fontSize: '0.75rem'
+                    }}>
+                      {member.membership_type}
                     </span>
+                    <span style={{ 
+                      backgroundColor: membershipStatusColors[member.membership_status]?.replace('bg-', '').replace('text-', '') || '#f3f4f6',
+                      padding: '0.25rem 0.5rem', 
+                      borderRadius: '0.25rem', 
+                      fontSize: '0.75rem'
+                    }}>
+                      {member.membership_status}
+                    </span>
+                    {member.payment_status !== 'paid' && (
+                      <span style={{ 
+                        backgroundColor: paymentStatusColors[member.payment_status]?.replace('bg-', '').replace('text-', '') || '#f3f4f6',
+                        padding: '0.25rem 0.5rem', 
+                        borderRadius: '0.25rem', 
+                        fontSize: '0.75rem'
+                      }}>
+                        💰 {member.payment_status}
+                      </span>
+                    )}
+                    {member.board_position && (
+                      <span style={{ 
+                        backgroundColor: '#dbeafe', 
+                        color: '#1e40af',
+                        padding: '0.25rem 0.5rem', 
+                        borderRadius: '0.25rem', 
+                        fontSize: '0.75rem'
+                      }}>
+                        👑 {member.board_position.replace('_', ' ')}
+                      </span>
+                    )}
                   </div>
+                  
+                  {/* Member name and club */}
                   <h3 style={{ color: '#065f46', fontSize: '1.25rem', marginBottom: '0.25rem' }}>
                     {member.full_name}
+                    {member.user && (
+                      <span style={{ fontSize: '0.875rem', color: '#6b7280', marginLeft: '0.5rem' }}>
+                        🔗 Linked Account
+                      </span>
+                    )}
                   </h3>
-                  <p style={{ color: '#6b7280', fontWeight: '500', marginBottom: '0.5rem' }}>
+                  <p style={{ color: '#6b7280', fontWeight: '500', marginBottom: '0.75rem' }}>
                     {member.club_name || 'No Club'}
                   </p>
+                  
+                  {/* Contact and details */}
                   <div style={{ display: 'grid', gap: '0.25rem', fontSize: '0.875rem', color: '#9ca3af' }}>
+                    {member.email && <div>📧 {member.email}</div>}
                     {member.phone && <div>📞 {member.phone}</div>}
                     {member.address && <div>📍 {member.address}</div>}
                     <div>📅 Joined: {new Date(member.date_joined || member.created_date).toLocaleDateString()}</div>
+                    {member.birth_date && (
+                      <div>🎂 Born: {new Date(member.birth_date).toLocaleDateString()}</div>
+                    )}
                     {member.handicap > 0 && <div>🏆 Handicap: {member.handicap}</div>}
+                    {member.notes && (
+                      <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#f9fafb', borderRadius: '0.25rem' }}>
+                        💬 {member.notes}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
