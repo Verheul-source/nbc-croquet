@@ -1,11 +1,7 @@
-// src/pages/index.jsx - Next.js Homepage (replace entire file content)
+// src/pages/index.jsx - FIXED Next.js Homepage
 import React, { useState, useEffect } from "react";
-import Link from "next/link";  // Next.js Link (not React Router!)
-import { Calendar, Trophy, Crown, BookOpen, ChevronRight } from "lucide-react";
-import { format } from "date-fns";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import Link from "next/link";  // FIXED: Proper Next.js import
+import { Calendar, Trophy, Crown, BookOpen, ChevronRight, Clock, MapPin, Users } from "lucide-react";
 
 export default function Home() {
   const [news, setNews] = useState([]);
@@ -18,32 +14,32 @@ export default function Home() {
 
   const loadNews = async () => {
     try {
-      // Mock data for now - later connect to your actual API
+      // Mock data for now - replace with actual API call when news system is built
       const mockNews = [
         {
           id: 1,
-          title: "Spring Tournament Registration Open",
-          content: "Join us for the annual Spring Championship at the Stichtse Croquet Club. Registration closes March 15th. This promises to be our most exciting tournament yet, with players from across the Netherlands competing for the prestigious title.",
+          title: "Spring Championship Registration Opens",
+          content: "The distinguished Spring Championship shall commence registration on the first of March. We invite all members of good standing to participate in this celebration of sporting excellence.",
           author: "Tournament Committee",
           category: "announcements",
-          created_date: "2025-01-05",
+          created_date: "2025-01-10",
           featured: true
         },
         {
           id: 2,
-          title: "New Member Orientation Success",
-          content: "Last Saturday's orientation welcomed 12 new members to our distinguished community. The session covered basic rules, etiquette, and club traditions.",
-          author: "Membership Committee", 
+          title: "New Member Initiation Ceremony",
+          content: "Last Saturday witnessed the induction of twelve distinguished new members into our esteemed society. The ceremony upheld our finest traditions of sporting conduct and gentlemanly behaviour.",
+          author: "Membership Secretary", 
           category: "club_news",
-          created_date: "2025-01-03"
+          created_date: "2025-01-08"
         },
         {
           id: 3,
-          title: "Winter Championship Results",
-          content: "Congratulations to Jan van der Berg for winning the 2024 Winter Championship in a thrilling final match.",
-          author: "Competition Secretary",
+          title: "Winter Championship Concludes",
+          content: "Congratulations to Meneer Jan van der Berg for claiming victory in our Winter Championship. His demonstration of skill and sportsmanship exemplifies the finest traditions of our noble game.",
+          author: "Championship Committee",
           category: "tournament_results", 
-          created_date: "2025-01-01"
+          created_date: "2025-01-05"
         }
       ];
 
@@ -59,195 +55,214 @@ export default function Home() {
 
   const categoryColors = {
     tournament_results: "bg-amber-100 text-amber-800 border-amber-300",
-    club_news: "bg-emerald-100 text-emerald-800 border-emerald-300", 
+    club_news: "bg-emerald-100 text-emerald-800 border-emerald-300",
     announcements: "bg-rose-100 text-rose-800 border-rose-300",
     newsletter: "bg-blue-100 text-blue-800 border-blue-300"
   };
 
   const quickActions = [
     {
-      title: "Browse Tournaments",
-      description: "Find and register for upcoming tournaments",
+      title: "Tournament Register",
+      description: "Participate in distinguished competitions",
       icon: Trophy,
       url: "/tournaments",
       color: "from-amber-500 to-amber-600"
     },
     {
-      title: "View Rankings", 
-      description: "Check current season standings",
+      title: "Championship Rankings", 
+      description: "View seasonal standings",
       icon: Crown,
       url: "/championships",
       color: "from-emerald-500 to-emerald-600"
     },
     {
-      title: "Rules Reference",
-      description: "Quick access to Stichts Croquet rules",
+      title: "Laws of the Game",
+      description: "Stichts Croquet regulations",
       icon: BookOpen,
       url: "/rules",
       color: "from-rose-500 to-rose-600"
     }
   ];
 
+  const upcomingEvents = [
+    {
+      date: "15 March 2025",
+      time: "14:00",
+      title: "Spring Championship",
+      location: "Hoofdveld",
+      participants: "24 members registered"
+    },
+    {
+      date: "22 March 2025", 
+      time: "10:30",
+      title: "New Member Orientation",
+      location: "Clubhouse",
+      participants: "8 prospective members"
+    },
+    {
+      date: "5 April 2025",
+      time: "15:00", 
+      title: "Annual General Meeting",
+      location: "Assembly Hall",
+      participants: "All members invited"
+    }
+  ];
+
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-        <p className="font-body text-emerald-600 mt-4">Loading latest news...</p>
+      <div className="text-center py-16">
+        <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-amber-400 border-t-transparent"></div>
+        <p className="font-body text-emerald-700 mt-6 text-lg">Loading club intelligence...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-12">
-      {/* Welcome Section */}
-      <div className="text-center space-y-6">
+    <div className="space-y-16">
+      {/* Edwardian Welcome Section */}
+      <div className="text-center space-y-8">
         <div className="inline-block">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-emerald-900 mb-4">
-            Welcome to Our Distinguished Club
+          <h1 className="font-display text-5xl md:text-6xl font-bold text-emerald-900 mb-6 heading-edwardian">
+            Welcome to Our Distinguished Society
           </h1>
-          <div className="ornate-divider w-full"></div>
+          <div className="ornate-divider"></div>
         </div>
-        <p className="font-body text-xl text-emerald-700 max-w-3xl mx-auto leading-relaxed">
-          Since 1898, the Nederlandse Bond der Croquet has been the home of fine croquet tradition in the Netherlands. 
-          Join us in the pursuit of precision, strategy, and sporting excellence.
-        </p>
+        <div className="max-w-4xl mx-auto">
+          <p className="font-body text-2xl text-emerald-700 leading-relaxed mb-4">
+            Since eighteen hundred and ninety-eight, the Nederlandse Bond der Croquet has maintained 
+            the finest traditions of sporting excellence in the Low Countries.
+          </p>
+          <p className="font-body text-lg text-emerald-600 italic">
+            "In pursuit of precision, strategy, and the gentleman's code"
+          </p>
+        </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Featured News - Edwardian Style */}
+      {featuredNews && (
+        <div className="card-edwardian p-8">
+          <div className="flex items-start gap-4 mb-4">
+            <div className={`px-3 py-1 rounded-full text-sm font-semibold ${categoryColors[featuredNews.category]}`}>
+              {featuredNews.category.replace('_', ' ').toUpperCase()}
+            </div>
+            <span className="text-emerald-600 text-sm font-body">
+              Featured Announcement
+            </span>
+          </div>
+          <h2 className="font-display text-3xl font-bold text-emerald-900 mb-4">
+            {featuredNews.title}
+          </h2>
+          <p className="font-body text-lg text-emerald-700 leading-relaxed mb-6">
+            {featuredNews.content}
+          </p>
+          <div className="flex justify-between items-center text-sm text-emerald-600">
+            <span className="font-body">— {featuredNews.author}</span>
+            <span className="font-body">{new Date(featuredNews.created_date).toLocaleDateString('en-GB', { 
+              day: 'numeric', 
+              month: 'long', 
+              year: 'numeric' 
+            })}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Actions - Edwardian Cards */}
       <div className="grid md:grid-cols-3 gap-8">
         {quickActions.map((action, index) => (
           <Link key={index} href={action.url}>
-            <Card className="group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border-2 border-emerald-200/50 hover:border-emerald-300">
-              <CardHeader className="text-center pb-4">
-                <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${action.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <action.icon className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="font-display text-2xl font-semibold text-emerald-900">
-                  {action.title}
-                </h3>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="font-body text-emerald-700 mb-4">{action.description}</p>
-                <div className="flex items-center justify-center text-emerald-600 group-hover:text-emerald-800">
-                  <span className="font-body font-semibold">Learn More</span>
-                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
-                </div>
-              </CardContent>
-            </Card>
+            <div className="card-edwardian p-6 hover:transform hover:scale-105 transition-all duration-300 cursor-pointer group">
+              <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${action.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <action.icon className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="font-display text-xl font-bold text-emerald-900 mb-2">
+                {action.title}
+              </h3>
+              <p className="font-body text-emerald-700">
+                {action.description}
+              </p>
+              <div className="mt-4 flex items-center text-amber-600 group-hover:text-amber-700">
+                <span className="font-body font-semibold">Proceed</span>
+                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
           </Link>
         ))}
       </div>
 
-      {/* Featured News */}
-      {featuredNews && (
-        <div className="space-y-6">
-          <h2 className="font-display text-3xl font-bold text-emerald-900 text-center mb-8">
-            Latest Club News
-          </h2>
-          
-          <Card className="border-2 border-amber-200 shadow-xl bg-gradient-to-br from-amber-50 to-amber-100">
-            <CardHeader className="border-b border-amber-200 bg-gradient-to-r from-amber-100 to-amber-50">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                  <Badge className={categoryColors[featuredNews.category] || categoryColors.announcements}>
-                    {featuredNews.category?.replace('_', ' ')}
-                  </Badge>
-                  <h3 className="font-display text-2xl font-bold text-emerald-900 mt-2">
-                    {featuredNews.title}
-                  </h3>
+      {/* Upcoming Events - Edwardian Schedule */}
+      <div className="card-edwardian p-8">
+        <h2 className="font-display text-3xl font-bold text-emerald-900 mb-6 text-center">
+          Forthcoming Engagements
+        </h2>
+        <div className="ornate-divider w-64"></div>
+        <div className="space-y-4">
+          {upcomingEvents.map((event, index) => (
+            <div key={index} className="border-l-4 border-amber-400 pl-6 py-4 hover:bg-emerald-50/50 transition-colors">
+              <div className="flex flex-wrap items-center gap-4 mb-2">
+                <div className="flex items-center text-emerald-700">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span className="font-body font-semibold">{event.date}</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-body text-emerald-600">By {featuredNews.author}</p>
-                  <p className="font-body text-sm text-emerald-500">
-                    {format(new Date(featuredNews.created_date), "MMMM d, yyyy")}
-                  </p>
+                <div className="flex items-center text-emerald-600">
+                  <Clock className="w-4 h-4 mr-2" />
+                  <span className="font-body">{event.time}</span>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="font-body text-emerald-800 leading-relaxed">
-                {featuredNews.content.length > 300 
-                  ? `${featuredNews.content.substring(0, 300)}...`
-                  : featuredNews.content
-                }
+              <h3 className="font-display text-xl font-bold text-emerald-900 mb-1">
+                {event.title}
+              </h3>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-emerald-600">
+                <div className="flex items-center">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  <span className="font-body">{event.location}</span>
+                </div>
+                <div className="flex items-center">
+                  <Users className="w-4 h-4 mr-1" />
+                  <span className="font-body">{event.participants}</span>
+                </div>
               </div>
-              {featuredNews.content.length > 300 && (
-                <Link href="/newsletter" className="inline-block mt-4">
-                  <Button variant="outline" className="border-emerald-300 text-emerald-700 hover:bg-emerald-50">
-                    Read Full Article
-                  </Button>
-                </Link>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Recent News Grid */}
-      {news.length > 1 && (
-        <div className="space-y-8">
-          <div className="text-center">
-            <h3 className="font-display text-2xl font-bold text-emerald-900 mb-2">
-              Recent Updates
-            </h3>
-            <div className="ornate-divider w-64 mx-auto"></div>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {news.slice(featuredNews ? 1 : 0, 7).map((article) => (
-              <Card key={article.id} className="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-emerald-100">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between mb-2">
-                    <Badge className={categoryColors[article.category] || categoryColors.announcements}>
-                      {article.category?.replace('_', ' ')}
-                    </Badge>
-                    <Calendar className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <h4 className="font-display text-lg font-semibold text-emerald-900 group-hover:text-emerald-700">
-                    {article.title}
-                  </h4>
-                </CardHeader>
-                <CardContent>
-                  <p className="font-body text-emerald-600 text-sm mb-3">
-                    {article.content.substring(0, 120)}...
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-emerald-500">
-                    <span>By {article.author}</span>
-                    <span>{format(new Date(article.created_date), "MMM d")}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Link href="/newsletter">
-              <Button className="bg-emerald-700 hover:bg-emerald-800 text-amber-100 px-8 py-3 rounded-lg font-body font-semibold">
-                View All News & Newsletter
-              </Button>
-            </Link>
-          </div>
+      {/* Latest Club Intelligence */}
+      <div className="card-edwardian p-8">
+        <h2 className="font-display text-3xl font-bold text-emerald-900 mb-6 text-center">
+          Latest Club Intelligence
+        </h2>
+        <div className="ornate-divider w-64"></div>
+        <div className="grid md:grid-cols-2 gap-6">
+          {news.slice(1).map((article) => (
+            <div key={article.id} className="border border-emerald-200 rounded-lg p-6 hover:border-amber-300 transition-colors">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`px-3 py-1 rounded-full text-xs font-semibold ${categoryColors[article.category]}`}>
+                  {article.category.replace('_', ' ').toUpperCase()}
+                </div>
+                <span className="text-emerald-500 text-sm font-body">
+                  {new Date(article.created_date).toLocaleDateString('en-GB')}
+                </span>
+              </div>
+              <h3 className="font-display text-lg font-bold text-emerald-900 mb-2">
+                {article.title}
+              </h3>
+              <p className="font-body text-emerald-700 text-sm leading-relaxed">
+                {article.content.substring(0, 120)}...
+              </p>
+              <div className="mt-3 text-xs text-emerald-600 font-body">
+                — {article.author}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-
-      {/* Club Information */}
-      <Card className="bg-gradient-to-br from-emerald-50 to-amber-50 border-2 border-emerald-200">
-        <CardContent className="p-8 text-center">
-          <h3 className="font-display text-2xl font-bold text-emerald-900 mb-4">
-            About Our Noble Sport
-          </h3>
-          <p className="font-body text-emerald-700 leading-relaxed max-w-4xl mx-auto">
-            Croquet is a sport of precision, strategy, and tradition. Our association maintains the highest 
-            standards of play while fostering a warm community of enthusiasts. Whether you're a seasoned 
-            player or new to the mallet, you'll find a welcoming home in our distinguished clubs across 
-            the Netherlands.
-          </p>
-          <div className="ornate-divider w-48 mx-auto mt-6"></div>
-          <p className="font-body text-emerald-600 italic mt-4">
-            "Excellence through tradition, community through sport"
-          </p>
-        </CardContent>
-      </Card>
+        <div className="text-center mt-8">
+          <Link href="/newsletter">
+            <button className="btn-edwardian px-8 py-3 rounded-lg">
+              View All Announcements
+            </button>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
