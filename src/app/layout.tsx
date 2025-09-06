@@ -1,5 +1,6 @@
 // src/app/layout.tsx - Root Layout for App Router
 import type { Metadata } from 'next'
+import Layout from '../components/Layout'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning={true}>
-        {children}
+        <Layout>
+          {children}
+        </Layout>
       </body>
     </html>
   )

@@ -11,11 +11,26 @@ import {
 
 interface LayoutProps {
   children: React.ReactNode;
-  currentPageName?: string;
 }
 
-export default function Layout({ children, currentPageName }: LayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
+  
+  // Automatically determine current page name
+  const getCurrentPageName = () => {
+    switch (pathname) {
+      case '/': return 'Welcome'
+      case '/rules': return 'Rules'
+      case '/tournaments': return 'Tournaments'
+      case '/championships': return 'Championships'
+      case '/newsletter': return 'Newsletter'
+      case '/members': return 'Members'
+      case '/administration': return 'Administration Dashboard'
+      default: return 'Nederlandse Bond der Clubs'
+    }
+  }
+
+  const currentPageName = getCurrentPageName()
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -541,4 +556,4 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
       `}</style>
     </div>
   );
-}
+  }
