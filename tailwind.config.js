@@ -1,10 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    // ONLY App Router directories - remove Pages Router references
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    // Remove: './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   safelist: [
     'bg-emerald-900',
@@ -16,16 +14,21 @@ export default {
     'bg-gradient-to-r',
     'from-emerald-900',
     'via-emerald-800',
-    'to-emerald-900'
+    'to-emerald-900',
+    'bg-white',
+    'bg-gray-50',
+    'bg-gray-100',
+    'border-gray-200',
+    'text-gray-800',
+    'text-gray-700'
   ],
   theme: {
     extend: {
       fontFamily: {
-        'display': ['serif'],
-        'body': ['sans-serif']
+        'display': ['Georgia', 'serif'],
+        'body': ['system-ui', 'sans-serif']
       },
       colors: {
-        // Define custom emerald and amber shades
         emerald: {
           50: '#ecfdf5',
           100: '#d1fae5',

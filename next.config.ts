@@ -9,22 +9,7 @@ const nextConfig: NextConfig = {
   // Optimize for modern builds
   reactStrictMode: true,
   
-  // Configure proper redirects from old Pages Router paths to App Router
-  async redirects() {
-    return [
-      // Redirect old pages structure to new app structure
-      {
-        source: '/rules',
-        destination: '/rules',
-        permanent: true,
-      },
-      {
-        source: '/administration',
-        destination: '/administration',
-        permanent: true,
-      }
-    ];
-  },
+  // REMOVED THE REDIRECT SECTION - it was causing infinite loops
   
   // TypeScript configuration
   typescript: {

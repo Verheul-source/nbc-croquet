@@ -1,4 +1,4 @@
-// src/components/Layout.tsx - App Router Compatible Layout
+// src/components/Layout.tsx - App Router Compatible Layout with Better Error Handling
 'use client'
 
 import React, { useState, useEffect } from "react";
@@ -49,13 +49,16 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
         setUser(data.user);
         setIsAdmin(data.user.role === 'admin');
       } else {
+        // API exists but user not authenticated
         setUser(null);
         setIsAdmin(false);
       }
     } catch (error) {
-      console.error('Authentication verification failed:', error);
+      // API doesn't exist or network error - fail gracefully
+      console.log('Authentication API not available:', error);
       setUser(null);
       setIsAdmin(false);
+      // Don't throw the error - just continue without authentication
     } finally {
       setLoading(false);
     }
@@ -75,7 +78,12 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
         window.location.href = '/login';
       }
     } catch (error) {
-      console.error('Logout failed:', error);
+      // If logout API fails, just clear local state
+      console.log('Logout API not available:', error);
+      setUser(null);
+      setIsAdmin(false);
+      setMobileMenuOpen(false);
+      window.location.href = '/login';
     }
   };
 
@@ -351,7 +359,7 @@ export default function Layout({ children, currentPageName }: LayoutProps) {
                       <User className="w-5 h-5 text-amber-300" />
                     )}
                     <span className="font-body text-sm text-amber-100 truncate max-w-24">
-                      {user.name || user.email}
+                      {user.email}
                     </span>
                     <button
                       onClick={handleLogout}

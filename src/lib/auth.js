@@ -1,135 +1,169 @@
-// src/lib/auth.js - Authentication utilities
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
+// src/lib/auth.js - Authentication Service
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 const prisma = new PrismaClient();
 
 export class AuthService {
-  // Hash password for storage
-  static async hashPassword(password) {
-    return bcrypt.hash(password, 12);
-  }
-
-  // Verify password against hash
-  static async verifyPassword(password, hash) {
-    return bcrypt.compare(password, hash);
-  }
-
-  // Generate secure session token
-  static generateSessionToken() {
-    return crypto.randomBytes(32).toString('hex');
-  }
-
-  // Create session in database
-  static async createSession(userId) {
-    const token = this.generateSessionToken();
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-    const session = await prisma.session.create({
-      data: {
-        userId,
-        token,
-        expiresAt
-      },
-      include: {
-        user: true
-      }
-    });
-
-    return session;
-  }
-
-  // Get session by token
-  static async getSession(token) {
-    if (!token) return null;
-
-    const session = await prisma.session.findUnique({
-      where: { token },
-      include: { user: true }
-    });
-
-    if (!session || session.expiresAt < new Date()) {
-      if (session) {
-        await prisma.session.delete({ where: { id: session.id } });
-      }
-      return null;
-    }
-
-    return session;
-  }
-
-  // Delete session (logout)
-  static async deleteSession(token) {
-    if (!token) return;
-
-    await prisma.session.deleteMany({
-      where: { token }
-    });
-  }
-
-  // Clean expired sessions
-  static async cleanExpiredSessions() {
-    await prisma.session.deleteMany({
-      where: {
-        expiresAt: {
-          lt: new Date()
-        }
-      }
-    });
-  }
-
-  // Authenticate user credentials - THIS WAS MISSING!
+  // Authenticate user with email and password
   static async authenticate(email, password) {
     try {
-      console.log('🔍 Authenticating user:', email);
-      
       // Find user by email
       const user = await prisma.user.findUnique({
-        where: { email },
+        where: { email: email.toLowerCase() },
         select: {
           id: true,
           email: true,
-          password: true,
+          name: true,
           role: true,
+          password: true
         }
       });
 
       if (!user) {
-        console.log('❌ User not found');
-        return { success: false, error: 'Invalid credentials' };
+        return { success: false, error: 'Invalid email or password' };
       }
 
-      console.log('👤 User found, verifying password...');
-      
       // Verify password
-      const isValid = await this.verifyPassword(password, user.password);
-      
-      if (!isValid) {
-        console.log('❌ Invalid password');
-        return { success: false, error: 'Invalid credentials' };
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return { success: false, error: 'Invalid email or password' };
       }
 
-      console.log('✅ Password valid, creating session...');
-      
-      // Create session
-      const session = await this.createSession(user.id);
-      
-      console.log('✅ Authentication successful');
+      // Create session token
+      const token = randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+      // Store session in database
+      await prisma.session.create({
+        data: {
+          token,
+          user_id: user.id,
+          expires_at: expiresAt
+        }
+      });
+
+      // Return user data (without password)
+      const { password: _, ...userData } = user;
       
       return {
         success: true,
-        user: {
-          id: session.user.id,
-          email: session.user.email,
-          role: session.user.role
-        },
-        token: session.token
+        token,
+        user: userData
       };
-      
     } catch (error) {
-      console.error('❌ Authentication error:', error);
+      console.error('Authentication error:', error);
       return { success: false, error: 'Authentication failed' };
     }
   }
+
+  // Get session and user data
+  static async getSession(token) {
+    try {
+      const session = await prisma.session.findUnique({
+        where: { token },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              role: true
+            }
+          }
+        }
+      });
+
+      if (!session) {
+        return null;
+      }
+
+      // Check if session is expired
+      if (session.expires_at < new Date()) {
+        // Delete expired session
+        await prisma.session.delete({
+          where: { token }
+        });
+        return null;
+      }
+
+      // Update last activity
+      await prisma.session.update({
+        where: { token },
+        data: { last_activity: new Date() }
+      });
+
+      return session;
+    } catch (error) {
+      console.error('Session lookup error:', error);
+      return null;
+    }
+  }
+
+  // Delete session (logout)
+  static async deleteSession(token) {
+    try {
+      await prisma.session.delete({
+        where: { token }
+      });
+      return true;
+    } catch (error) {
+      console.error('Session deletion error:', error);
+      return false;
+    }
+  }
+
+  // Create a new user (for admin purposes)
+  static async createUser(email, password, role = 'member') {
+    try {
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      const user = await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          password: hashedPassword,
+          role
+        },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          created_date: true
+        }
+      });
+
+      return { success: true, user };
+    } catch (error) {
+      console.error('User creation error:', error);
+      if (error.code === 'P2002') {
+        return { success: false, error: 'Email already exists' };
+      }
+      return { success: false, error: 'Failed to create user' };
+    }
+  }
+
+  // Cleanup expired sessions
+  static async cleanupExpiredSessions() {
+    try {
+      const result = await prisma.session.deleteMany({
+        where: {
+          expires_at: {
+            lt: new Date()
+          }
+        }
+      });
+      console.log(`Cleaned up ${result.count} expired sessions`);
+      return result.count;
+    } catch (error) {
+      console.error('Session cleanup error:', error);
+      return 0;
+    }
+  }
 }
+
+// Close Prisma connection on process exit
+process.on('beforeExit', async () => {
+  await prisma.$disconnect();
+});
