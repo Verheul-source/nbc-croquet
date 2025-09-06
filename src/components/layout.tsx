@@ -357,12 +357,6 @@ if (!mounted) {
   );
 }
 
-// Your existing return statement continues here...
-return (
-  <div className="min-h-screen" style={{ 
-    background: 'linear-gradient(135deg, #fefcf7 0%, #f0fdf4 50%, #ecfdf5 100%)'
-  }}></div>
-
   return (
     <div className="min-h-screen" style={{ 
       background: 'linear-gradient(135deg, #fefcf7 0%, #f0fdf4 50%, #ecfdf5 100%)'
@@ -579,5 +573,4 @@ return (
         }
       `}</style>
     </div>
-  );
-  }
+  );}
