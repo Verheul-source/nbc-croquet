@@ -35,10 +35,12 @@ export default function Layout({ children }: LayoutProps) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    checkUser();
-  }, []);
+useEffect(() => {
+  setMounted(true);
+  checkUser();
+}, []);
 
   // Prevent scroll when mobile menu is open
   useEffect(() => {
@@ -338,6 +340,28 @@ export default function Layout({ children }: LayoutProps) {
       ))}
     </div>
   );
+
+// Add this RIGHT before your existing return statement
+if (!mounted) {
+  return (
+    <div className="min-h-screen" style={{ 
+      background: 'linear-gradient(135deg, #fefcf7 0%, #f0fdf4 50%, #ecfdf5 100%)'
+    }}>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Crown className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+          <p className="font-body text-emerald-700">Loading...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Your existing return statement continues here...
+return (
+  <div className="min-h-screen" style={{ 
+    background: 'linear-gradient(135deg, #fefcf7 0%, #f0fdf4 50%, #ecfdf5 100%)'
+  }}></div>
 
   return (
     <div className="min-h-screen" style={{ 
