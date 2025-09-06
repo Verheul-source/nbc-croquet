@@ -4,24 +4,6 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  safelist: [
-    'bg-emerald-900',
-    'bg-emerald-800', 
-    'bg-emerald-700',
-    'text-amber-100',
-    'text-amber-200',
-    'border-amber-400',
-    'bg-gradient-to-r',
-    'from-emerald-900',
-    'via-emerald-800',
-    'to-emerald-900',
-    'bg-white',
-    'bg-gray-50',
-    'bg-gray-100',
-    'border-gray-200',
-    'text-gray-800',
-    'text-gray-700'
-  ],
   theme: {
     extend: {
       fontFamily: {
@@ -56,5 +38,4 @@ export default {
       }
     }
   },
-  plugins: []
 }

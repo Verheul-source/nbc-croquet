@@ -1,7 +1,5 @@
-/* src/app/globals.css - App Router Global Styles */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* src/app/globals.css - Your EXACT Original CSS with v4 Fix */
+@import "tailwindcss";
 
 /* Import Tailwind's base styles */
 @layer base {
@@ -189,7 +187,4 @@
     border: 1px solid #ccc !important;
     box-shadow: none !important;
   }
-}
-body {
-  background: hotpink !important;
 }
