@@ -1,6 +1,4 @@
 // src/app/rules/page.tsx - Rules Page with Fallback Data
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
